@@ -9,7 +9,7 @@ services:
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
       MASTER_KEY: ${MASTER_KEY:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      TRUST_PROXY: ${TRUST_PROXY:-false}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
       ALLOW_URL_TOKENS: ${ALLOW_URL_TOKENS:-true}
       OAUTH_ENABLED: ${OAUTH_ENABLED:-true}
     volumes:

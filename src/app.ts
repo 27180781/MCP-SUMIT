@@ -79,6 +79,14 @@ export function bootstrap(config: AppConfig, overrides: BootstrapOverrides = {})
 
   const mcpSessions = new McpSessionManager({ createContext, idleMs: config.mcpSessionIdleMinutes * 60_000, log });
 
+  const undecryptable = accounts.undecryptableAccounts();
+  if (undecryptable.length) {
+    log("error", "MASTER_KEY does not match the stored data: these accounts cannot be decrypted. Restore the original MASTER_KEY (env or DATA_DIR/master.key) or re-enter their API keys in the admin console.", { accounts: undecryptable });
+  }
+  if (config.nodeEnv === "production" && publicUrl.protocol !== "https:") {
+    log("error", "PUBLIC_URL is not https — Claude.ai OAuth connectors will not work and admin cookies are not marked Secure.", { publicUrl: config.publicUrl });
+  }
+
   return { config, log, store, cipher, accounts, tokens, adminAuth, adminSessions, oauth, oauthActive, mcpSessions };
 }
 
@@ -86,7 +94,7 @@ export function createApp(deps: AppDeps): Express {
   const { config, log, tokens, oauth, mcpSessions } = deps;
   const app = express();
   app.disable("x-powered-by");
-  if (config.trustProxy) app.set("trust proxy", true);
+  if (config.trustProxy !== false) app.set("trust proxy", config.trustProxy);
 
   const publicUrl = new URL(config.publicUrl);
   const mcpUrl = new URL("/mcp", publicUrl);
@@ -144,6 +152,9 @@ export function createApp(deps: AppDeps): Express {
       res.status(404).json({ error: "URL tokens are disabled (ALLOW_URL_TOKENS=false)" });
       return;
     }
+    // The secret is part of the URL: keep it out of referrers and caches.
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("Cache-Control", "no-store");
     req.headers.authorization = `Bearer ${req.params.token}`;
     next();
   };

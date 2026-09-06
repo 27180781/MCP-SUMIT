@@ -15,10 +15,10 @@ services:
             HOST: 0.0.0.0
             DATA_DIR: /data
             PUBLIC_URL: https://$$cap_appname.$$cap_root_domain
-            TRUST_PROXY: 'true'
-            MASTER_KEY: $$cap_master_key
-            ADMIN_PASSWORD: $$cap_admin_password
-            ALLOW_URL_TOKENS: 'true'
+            TRUST_PROXY: '1'
+            MASTER_KEY: '$$cap_master_key'
+            ADMIN_PASSWORD: '$$cap_admin_password'
+            ALLOW_URL_TOKENS: '$$cap_allow_url_tokens'
             OAUTH_ENABLED: 'true'
             SUMIT_BASE_URL: https://api.sumit.co.il
         caproverExtra:
@@ -29,18 +29,23 @@ caproverOneClickApp:
         - id: $$cap_version
           label: SUMIT MCP image tag
           defaultValue: latest
-          description: Docker image tag from ghcr.io/27180781/mcp-sumit (latest or a version like v0.1.0)
-          validRegex: /^([^\s^\/])+$/
+          description: Docker image tag from ghcr.io/27180781/mcp-sumit — latest, or a published version such as 0.1.0 / 0.1 (see the repository's Packages page)
+          validRegex: /^[A-Za-z0-9_.-]+$/
         - id: $$cap_master_key
           label: Master key (encrypts the SUMIT API keys at rest)
           defaultValue: $$cap_gen_random_hex(32)
-          description: Keep a copy of this value! Without it the stored SUMIT API keys cannot be decrypted after a restore.
-          validRegex: /^.{16,}$/
+          description: Keep a copy of this value! Without it the stored SUMIT API keys cannot be decrypted after a restore. Letters, digits and _ . + = - only.
+          validRegex: /^[A-Za-z0-9_.+=-]{16,}$/
         - id: $$cap_admin_password
           label: Admin console password
           defaultValue: $$cap_gen_random_hex(12)
-          description: Password for https://<app>.<root-domain>/admin (also used to approve Claude.ai OAuth connections).
-          validRegex: /^.{8,}$/
+          description: Password for https://<app>.<root-domain>/admin (also used to approve Claude.ai OAuth connections). 8+ characters; letters, digits and _ . ! @ % ^ + = - only.
+          validRegex: /^[A-Za-z0-9_.!@%^+=-]{8,}$/
+        - id: $$cap_allow_url_tokens
+          label: Allow tokens embedded in the URL (/mcp/t/<token>)
+          defaultValue: 'false'
+          description: Set to true only for clients that cannot send an Authorization header or use OAuth. URL tokens show up in nginx access logs.
+          validRegex: /^(true|false)$/
     instructions:
         start: |-
             SUMIT MCP — Model Context Protocol server for SUMIT (sumit.co.il) with multi-account support,

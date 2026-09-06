@@ -94,7 +94,7 @@ async function boot(){
 }
 
 function renderSetup(){
-  $('#app').innerHTML = '<div class="card login"><h2>ברוכים הבאים 👋</h2><p class="lead">זו ההפעלה הראשונה. קבעו סיסמת מנהל לקונסולה (לפחות 8 תווים). הסיסמה משמשת גם לאישור חיבורי OAuth מ-Claude.</p>'+
+  $('#app').innerHTML = '<div class="card login"><h2>ברוכים הבאים 👋</h2>'+insecureBanner()+'<p class="lead">זו ההפעלה הראשונה. קבעו סיסמת מנהל לקונסולה (לפחות 8 תווים). הסיסמה משמשת גם לאישור חיבורי OAuth מ-Claude.</p>'+
     '<label class="f">סיסמת מנהל</label><input type="password" id="pw1" autocomplete="new-password"><br><br><label class="f">אימות סיסמה</label><input type="password" id="pw2" autocomplete="new-password"><br><br>'+
     '<button class="btn primary" id="do-setup">יצירת סיסמה והתחברות</button><div id="setup-msg"></div></div>';
   $('#do-setup').onclick = async () => {
@@ -104,8 +104,11 @@ function renderSetup(){
   };
 }
 
+function insecureBanner(){
+  return (state.status.secureCookie && !state.status.requestSecure) ? '<div class="msg warn">השרת מוגדר ל-https ('+esc(state.status.publicUrl)+') אבל הגישה כרגע אינה מאובטחת, ולכן ההתחברות לא תישמר. פתחו את הקונסולה בכתובת ה-https, או בדקו את TRUST_PROXY.</div>' : '';
+}
 function renderLogin(){
-  $('#app').innerHTML = '<div class="card login"><h2>כניסה לקונסולת הניהול</h2><p class="lead">הזינו את סיסמת המנהל של השרת.</p><label class="f">סיסמה</label><input type="password" id="pw" autocomplete="current-password"><br><br><button class="btn primary" id="do-login">כניסה</button><div id="login-msg"></div></div>';
+  $('#app').innerHTML = '<div class="card login"><h2>כניסה לקונסולת הניהול</h2>'+insecureBanner()+'<p class="lead">הזינו את סיסמת המנהל של השרת.</p><label class="f">סיסמה</label><input type="password" id="pw" autocomplete="current-password"><br><br><button class="btn primary" id="do-login">כניסה</button><div id="login-msg"></div></div>';
   const go = async () => { try { await api('/login',{method:'POST',body:{password:$('#pw').value}}); location.reload(); } catch(e){ $('#login-msg').innerHTML='<div class="msg bad">'+esc(e.message)+'</div>'; } };
   $('#do-login').onclick = go; $('#pw').addEventListener('keydown', e => { if(e.key==='Enter') go(); });
 }
@@ -117,7 +120,8 @@ async function loadAll(){
 
 function renderApp(){
   const tabs = [['accounts','חשבונות סאמיט'],['access','גישה וטוקנים'],['connect','חיבור ל-Claude / AI'],['audit','יומן פעילות'],['tools','כלים (Tools)']];
-  $('#app').innerHTML = '<nav class="tabs">'+tabs.map(([k,l])=>'<button data-tab="'+k+'" class="'+(state.tab===k?'active':'')+'">'+l+'</button>').join('')+'</nav><div id="tab"></div>';
+  const keyWarn = (state.status.undecryptableAccounts && state.status.undecryptableAccounts.length) ? '<div class="msg bad">⚠️ MASTER_KEY אינו תואם לנתונים השמורים: לא ניתן לפענח את מפתחות ה-API של '+esc(state.status.undecryptableAccounts.join(', '))+'. שחזרו את ה-MASTER_KEY המקורי, או ערכו את החשבונות והזינו את המפתחות מחדש.</div>' : '';
+  $('#app').innerHTML = keyWarn + '<nav class="tabs">'+tabs.map(([k,l])=>'<button data-tab="'+k+'" class="'+(state.tab===k?'active':'')+'">'+l+'</button>').join('')+'</nav><div id="tab"></div>';
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => { state.tab=b.dataset.tab; renderApp(); });
   ({accounts:renderAccounts, access:renderAccess, connect:renderConnect, audit:renderAudit, tools:renderTools})[state.tab]();
 }

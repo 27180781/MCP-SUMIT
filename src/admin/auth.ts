@@ -68,6 +68,11 @@ export class AdminSessions {
 
   constructor(private readonly opts: AdminSessionOptions) {}
 
+  /** True when the session cookie carries the Secure flag (PUBLIC_URL is https). */
+  get secure(): boolean {
+    return this.opts.secure;
+  }
+
   issue(res: Response): void {
     const id = randomId(24);
     this.sessions.set(id, Date.now() + this.opts.ttlMs);

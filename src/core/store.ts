@@ -116,9 +116,13 @@ export class JsonStore {
 
   constructor(dataDir: string, fileName = "store.json", options: { persist?: boolean } = {}) {
     this.persistEnabled = options.persist !== false;
-    if (this.persistEnabled) fs.mkdirSync(dataDir, { recursive: true });
     this.file = path.join(dataDir, fileName);
-    this.data = this.persistEnabled ? this.load() : emptyStore();
+    if (this.persistEnabled) {
+      assertWritableDirectory(dataDir);
+      this.data = this.load();
+    } else {
+      this.data = emptyStore();
+    }
   }
 
   private load(): StoreData {
@@ -163,10 +167,34 @@ export class JsonStore {
     await fsp.rename(tmp, this.file);
   }
 
+  /** Appends an audit entry. Never rejects — a failing disk must not crash a request handler. */
   async audit(entry: AuditEntry): Promise<void> {
-    await this.update((d) => {
-      d.audit.unshift(entry);
-      if (d.audit.length > MAX_AUDIT) d.audit.length = MAX_AUDIT;
-    });
+    try {
+      await this.update((d) => {
+        d.audit.unshift(entry);
+        if (d.audit.length > MAX_AUDIT) d.audit.length = MAX_AUDIT;
+      });
+    } catch (err) {
+      process.stderr.write(`[sumit-mcp] failed to persist audit entry: ${(err as Error).message}\n`);
+    }
+  }
+}
+
+/**
+ * Fails fast with an actionable message when the data directory cannot be written
+ * (typical cause: a bind-mounted host path owned by root while the container runs as uid 1000).
+ */
+export function assertWritableDirectory(dir: string): void {
+  const probe = path.join(dir, `.write-probe-${process.pid}`);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(probe, "ok");
+    fs.unlinkSync(probe);
+  } catch (err) {
+    const uid = typeof process.getuid === "function" ? process.getuid() : "?";
+    throw new Error(
+      `Data directory "${dir}" is not writable by this process (uid ${uid}): ${(err as Error).message}. ` +
+        `Fix the permissions of the mounted volume (e.g. "chown -R 1000:1000 <host path>") or use a Docker-managed volume.`
+    );
   }
 }

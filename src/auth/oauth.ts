@@ -321,10 +321,12 @@ function touch(store: JsonStore, id: string): void {
   const last = touched.get(id) || 0;
   if (Date.now() - last < 60_000) return;
   touched.set(id, Date.now());
-  void store.update((d) => {
-    const rec = d.oauth.tokens.find((t) => t.id === id);
-    if (rec) rec.lastUsedAt = new Date().toISOString();
-  });
+  store
+    .update((d) => {
+      const rec = d.oauth.tokens.find((t) => t.id === id);
+      if (rec) rec.lastUsedAt = new Date().toISOString();
+    })
+    .catch(() => undefined);
 }
 
 function pruneExpired<T>(list: T[], getExpiry: (item: T) => string | undefined): void {

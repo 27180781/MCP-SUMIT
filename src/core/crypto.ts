@@ -13,7 +13,14 @@ export function deriveKey(masterSecret: string): Buffer {
  * Loads the master key from the environment or from DATA_DIR/master.key (creating it if needed).
  */
 export function loadOrCreateMasterKey(dataDir: string, envKey?: string): string {
-  if (envKey && envKey.trim().length >= 16) return envKey.trim();
+  if (envKey !== undefined && envKey.trim() !== "") {
+    const key = envKey.trim();
+    if (key.length < 16) {
+      throw new Error(`MASTER_KEY must be at least 16 characters (got ${key.length}). Generate one with: openssl rand -hex 32`);
+    }
+    if (/^<.*>$/.test(key)) throw new Error("MASTER_KEY still contains the placeholder value — set a real key (openssl rand -hex 32)");
+    return key;
+  }
   const file = path.join(dataDir, "master.key");
   if (fs.existsSync(file)) {
     const k = fs.readFileSync(file, "utf8").trim();

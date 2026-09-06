@@ -78,19 +78,32 @@ export function createAdminRouter(deps: AdminDeps): Router {
       configured: adminAuth.isConfigured(),
       passwordFromEnv: !!config.adminPassword,
       authenticated: sessions.isAuthenticated(req),
+      secureCookie: sessions.secure,
+      requestSecure: req.secure,
       publicUrl: config.publicUrl,
       mcpUrl: `${config.publicUrl}/mcp`,
       sseUrl: `${config.publicUrl}/sse`,
       oauthEnabled: deps.oauthActive,
       allowUrlTokens: config.allowUrlTokens,
       toolCount: catalog.length + loadGeneratedCatalog().length + 5,
-      accountsCount: deps.store.get().accounts.length
+      accountsCount: deps.store.get().accounts.length,
+      undecryptableAccounts: sessions.isAuthenticated(req) ? accounts.undecryptableAccounts() : undefined
     }))
   );
+
+  const requireHttpsForCookies = (req: Request) => {
+    if (sessions.secure && !req.secure) {
+      throw new HttpError(
+        400,
+        `הקונסולה מוגדרת עם PUBLIC_URL ב-https, ולכן עוגיית ההתחברות נשלחת רק דרך https. גשו לכתובת ${config.publicUrl}/admin (ודאו ש-HTTPS מופעל ושה-TRUST_PROXY מוגדר כשיש reverse proxy).`
+      );
+    }
+  };
 
   api.post(
     "/setup",
     wrap(async (req, res) => {
+      requireHttpsForCookies(req);
       if (adminAuth.isConfigured()) throw new HttpError(409, "Admin password is already configured");
       const password = String((req.body as { password?: string })?.password || "");
       await adminAuth.setPassword(password);
@@ -103,6 +116,7 @@ export function createAdminRouter(deps: AdminDeps): Router {
   api.post(
     "/login",
     wrap(async (req, res) => {
+      requireHttpsForCookies(req);
       const ip = req.ip || "unknown";
       if (adminAuth.isLocked(ip)) throw new HttpError(429, "יותר מדי ניסיונות — נסו שוב בעוד כמה דקות");
       const password = String((req.body as { password?: string })?.password || "");

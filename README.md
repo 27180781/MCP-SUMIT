@@ -143,10 +143,10 @@ PUBLIC_URL=https://sumit-mcp.example.com MASTER_KEY=$(openssl rand -hex 32) npm 
 | --- | --- | --- |
 | `PORT` / `HOST` | `8080` / `0.0.0.0` | כתובת האזנה |
 | `PUBLIC_URL` | `http://localhost:8080` | הכתובת הציבורית (נדרש https עבור OAuth / Claude.ai) |
-| `TRUST_PROXY` | `false` | `true` מאחורי reverse proxy |
+| `TRUST_PROXY` | `0` | מספר ה-reverse proxies שלפני השרת: `1` ל-CapRover / nginx / Caddy / Railway, `2` ל-Cloudflare לפני nginx |
 | `MASTER_KEY` | נוצר אוטומטית ב-`DATA_DIR/master.key` | מפתח הצפנה למפתחות ה-API. **גבו אותו** — בלעדיו לא ניתן לפענח את החשבונות |
 | `ADMIN_PASSWORD` | — | סיסמת מנהל קבועה (אחרת נקבעת בכניסה הראשונה) |
-| `ALLOW_URL_TOKENS` | `true` | לאפשר `/mcp/t/<token>` |
+| `ALLOW_URL_TOKENS` | `true` | לאפשר `/mcp/t/<token>` (בדוגמאות הפריסה מכובה; הטוקן מופיע בלוגים של ה-proxy) |
 | `OAUTH_ENABLED` | `true` | להפעיל את שרת ה-OAuth המובנה |
 | `DATA_DIR` | `./data` | תיקיית הנתונים (`store.json` מוצפן חלקית + `master.key`) |
 | `SUMIT_BASE_URL` | `https://api.sumit.co.il` | ניתן לדרוס גם לכל חשבון בנפרד |
@@ -160,7 +160,7 @@ PUBLIC_URL=https://sumit-mcp.example.com MASTER_KEY=$(openssl rand -hex 32) npm 
 ## פריסה לענן
 
 * **DigitalOcean + CapRover (מומלץ):** מדריך מלא בעברית — [docs/DEPLOY_CAPROVER_DIGITALOCEAN.md](docs/DEPLOY_CAPROVER_DIGITALOCEAN.md). הריפו כולל `captain-definition`, תבנית One-Click (`deploy/caprover/one-click-app.yml`), סקריפט פריסה (`deploy/caprover/deploy.sh`) ו-GitHub Actions שמפרסם image ל-GHCR.
-* **Railway / Render / Fly.io / Koyeb:** פרסו את ה-Dockerfile, הגדירו `PUBLIC_URL=https://<your-domain>`, `TRUST_PROXY=true`, `MASTER_KEY`, `ADMIN_PASSWORD`, וחברו נפח (volume) ל-`/data`.
+* **Railway / Render / Fly.io / Koyeb:** פרסו את ה-Dockerfile, הגדירו `PUBLIC_URL=https://<your-domain>`, `TRUST_PROXY=1`, `MASTER_KEY`, `ADMIN_PASSWORD`, וחברו נפח (volume) ל-`/data`.
 * **VPS עם Caddy:** `caddy reverse-proxy --from sumit.example.com --to localhost:8080` נותן https אוטומטי.
 * בדיקת בריאות: `GET /healthz`.
 

@@ -2,7 +2,21 @@ import { loadConfig } from "./config.js";
 import { bootstrap, createApp } from "./app.js";
 
 const config = loadConfig();
-const deps = bootstrap(config);
+let deps: ReturnType<typeof bootstrap>;
+try {
+  deps = bootstrap(config);
+} catch (err) {
+  process.stderr.write(`[sumit-mcp] startup failed: ${(err as Error).message}\n`);
+  process.exit(1);
+}
+process.on("unhandledRejection", (reason) => {
+  deps.log("error", "unhandled promise rejection — exiting", { reason: reason instanceof Error ? reason.stack || reason.message : String(reason) });
+  process.exit(1);
+});
+process.on("uncaughtException", (err) => {
+  deps.log("error", "uncaught exception — exiting", { error: err.stack || err.message });
+  process.exit(1);
+});
 const app = createApp(deps);
 
 const server = app.listen(config.port, config.host, () => {

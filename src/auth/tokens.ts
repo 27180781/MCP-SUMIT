@@ -93,10 +93,12 @@ export class ApiTokenService {
     const last = this.lastTouched.get(rec.id) || 0;
     if (Date.now() - last > 60_000) {
       this.lastTouched.set(rec.id, Date.now());
-      void this.store.update((d) => {
-        const r = d.tokens.find((t) => t.id === rec.id);
-        if (r) r.lastUsedAt = new Date().toISOString();
-      });
+      this.store
+        .update((d) => {
+          const r = d.tokens.find((t) => t.id === rec.id);
+          if (r) r.lastUsedAt = new Date().toISOString();
+        })
+        .catch(() => undefined);
     }
     return {
       kind: "api_token",

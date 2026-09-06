@@ -15,12 +15,12 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     DATA_DIR=/data
 WORKDIR /app
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY package.json ./
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --chown=node:node package.json ./
 # Optional catalog generated from the official Swagger (catalog/generated.json)
-COPY catalog ./catalog
-RUN mkdir -p /data && chown -R node:node /data /app
+COPY --chown=node:node catalog ./catalog
+RUN mkdir -p /data && chown node:node /data
 USER node
 VOLUME ["/data"]
 EXPOSE 8080

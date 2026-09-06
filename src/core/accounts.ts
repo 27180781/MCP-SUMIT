@@ -50,6 +50,19 @@ export class AccountRegistry {
     return this.store.get().accounts.map((a) => this.toPublic(a));
   }
 
+  /** Returns the names of stored accounts whose API key cannot be decrypted with the current master key. */
+  undecryptableAccounts(): string[] {
+    const bad: string[] = [];
+    for (const a of this.store.get().accounts) {
+      try {
+        this.cipher.decrypt(a.apiKeyEnc);
+      } catch {
+        bad.push(a.name);
+      }
+    }
+    return bad;
+  }
+
   private toPublic(a: AccountRecord): AccountPublic {
     let masked = "";
     try {

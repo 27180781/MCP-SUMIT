@@ -9,6 +9,13 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: caprover-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     if: ${{ vars.CAPROVER_AUTO_DEPLOY == 'true' }}
@@ -25,4 +32,4 @@ jobs:
           CAPROVER_URL: ${{ secrets.CAPROVER_URL }}
           CAPROVER_APP: ${{ secrets.CAPROVER_APP }}
           CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_APP_TOKEN }}
-        run: npx -y caprover@2 deploy -u "$CAPROVER_URL" -a "$CAPROVER_APP" --appToken "$CAPROVER_APP_TOKEN" -b "${GITHUB_REF_NAME}"
+        run: npx -y caprover@2.4.4 deploy -u "$CAPROVER_URL" -a "$CAPROVER_APP" --appToken "$CAPROVER_APP_TOKEN" -b "${GITHUB_REF_NAME}"
