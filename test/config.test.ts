@@ -46,3 +46,13 @@ describe("startup safety", () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 });
+
+describe("validateConfig", () => {
+  it("rejects placeholders copied from the examples", async () => {
+    const { validateConfig } = await import("../src/config.js");
+    expect(() => validateConfig(loadConfig({ PUBLIC_URL: "https://<app-name>.<root-domain>" }), {})).toThrow(/PUBLIC_URL still contains a placeholder/);
+    expect(() => validateConfig(loadConfig({ PUBLIC_URL: "https://ok.example.com", ADMIN_PASSWORD: "<סיסמה חזקה>" }), {})).toThrow(/ADMIN_PASSWORD still contains the placeholder/);
+    expect(() => validateConfig(loadConfig({ PUBLIC_URL: "not a url" }), {})).toThrow(/not a valid URL/);
+    expect(() => validateConfig(loadConfig({ PUBLIC_URL: "https://ok.example.com", ADMIN_PASSWORD: "correct horse" }), {})).not.toThrow();
+  });
+});

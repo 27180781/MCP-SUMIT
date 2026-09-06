@@ -7,6 +7,10 @@ try {
   deps = bootstrap(config);
 } catch (err) {
   process.stderr.write(`[sumit-mcp] startup failed: ${(err as Error).message}\n`);
+  process.stderr.write(
+    "[sumit-mcp] Fix the environment variables and redeploy. CapRover: Apps → <app> → App Configs → Environment Variables → Save & Update. " +
+      "Generate secrets with: openssl rand -hex 32 (or ./deploy/caprover/make-env.sh)\n"
+  );
   process.exit(1);
 }
 process.on("unhandledRejection", (reason) => {

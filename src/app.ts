@@ -4,7 +4,7 @@ import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
 import { InvalidTokenError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
-import type { AppConfig } from "./config.js";
+import { validateConfig, type AppConfig } from "./config.js";
 import { Cipher, loadOrCreateMasterKey } from "./core/crypto.js";
 import { JsonStore } from "./core/store.js";
 import { AccountRegistry } from "./core/accounts.js";
@@ -41,6 +41,7 @@ export interface BootstrapOverrides {
 
 /** Wires all services together (used by the HTTP server, the stdio entrypoint and tests). */
 export function bootstrap(config: AppConfig, overrides: BootstrapOverrides = {}): AppDeps {
+  validateConfig(config);
   const log = overrides.log || createLogger(config.logLevel);
   const masterKey = overrides.masterKey || loadOrCreateMasterKey(config.dataDir, config.masterKey);
   const cipher = new Cipher(masterKey);

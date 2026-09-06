@@ -81,7 +81,13 @@ caprover serversetup
 2. פתחו את האפליקציה → טאב **App Configs**:
    * **Persistent Directories → Add Persistent Directory**: Path in App `/data`, בחרו **Label** והזינו `sumit-mcp-data` → Save & Update.
      (העדיפו Label על פני נתיב בשרת: הקונטיינר רץ כמשתמש לא-root, ו-volume מנוהל מקבל הרשאות נכונות אוטומטית. אם בכל זאת בחרתם נתיב כמו `/captain/data/sumit-mcp`, הריצו בשרת `chown -R 1000:1000 /captain/data/sumit-mcp`.)
-   * **Environment Variables → Bulk Edit** — הדביקו (ראו `deploy/caprover/env.example`):
+   * **Environment Variables → Bulk Edit** — הדרך הבטוחה: הריצו במחשב
+
+     ```bash
+     ./deploy/caprover/make-env.sh https://sumit-mcp.apps.example.com
+     ```
+
+     והדביקו את הפלט (הסקריפט מגריל `MASTER_KEY` ו-`ADMIN_PASSWORD` ומדפיס אותם לשמירה). לחלופין הדביקו את הבלוק הבא **והחליפו כל ערך בסוגריים משולשים** — השרת מסרב לעלות (502 בלוג: `startup failed: ... placeholder`) כל עוד נשאר בו placeholder:
 
      ```env
      NODE_ENV=production
@@ -191,6 +197,7 @@ curl https://sumit-mcp.apps.example.com/.well-known/oauth-authorization-server
 | תסמין | סיבה / פתרון |
 | --- | --- |
 | 502 Bad Gateway מיד אחרי פריסה | הקונטיינר עדיין עולה, או שה-Container HTTP Port אינו 8080. בדקו App Logs. |
+| 502, ובלוג `startup failed: MASTER_KEY still contains the placeholder value` (או `PUBLIC_URL`/`ADMIN_PASSWORD ... placeholder`) | הודבק הבלוק מהמדריך בלי להחליף את הערכים בסוגריים המשולשים. App Configs → Environment Variables → החליפו את הערך (למשל בפלט של `openssl rand -hex 32`) → Save & Update. אם כבר הוספתם חשבונות סאמיט עם המפתח הישן, הזינו מחדש את מפתחות ה-API (הקונסולה תציג אזהרה). |
 | הקונטיינר נופל מיד עם `Data directory "/data" is not writable` | Persistent Directory עם נתיב בשרת ללא הרשאות — הריצו `chown -R 1000:1000 <path>` או עברו ל-Label. |
 | ההתחברות לקונסולה "מצליחה" אבל חוזרים למסך הכניסה | הגישה נעשית דרך http בעוד `PUBLIC_URL` הוא https (העוגייה מסומנת Secure). גשו דרך https וודאו `TRUST_PROXY=1`. |
 | OAuth לא מופיע / Claude.ai לא מצליח להתחבר | `PUBLIC_URL` חייב להיות בדיוק הכתובת ה-https הציבורית (בלי `/` בסוף), HTTPS מופעל ו-Force HTTPS פעיל. בדקו `/.well-known/oauth-authorization-server`. |

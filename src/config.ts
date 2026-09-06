@@ -49,6 +49,34 @@ export interface AppConfig {
   nodeEnv: string;
 }
 
+const PLACEHOLDER = /<[^>]*>/;
+
+/**
+ * Rejects values that were copied from the examples without being filled in.
+ * Throws an Error whose message says exactly what to change.
+ */
+export function validateConfig(config: AppConfig, env: Env = process.env): void {
+  const problems: string[] = [];
+  if (PLACEHOLDER.test(config.publicUrl)) {
+    problems.push(`PUBLIC_URL still contains a placeholder ("${config.publicUrl}") — set the real https address of this server, e.g. https://sumit-mcp.apps.example.com`);
+  } else {
+    try {
+      const u = new URL(config.publicUrl);
+      if (!/^https?:$/.test(u.protocol)) problems.push(`PUBLIC_URL must start with http:// or https:// (got "${config.publicUrl}")`);
+    } catch {
+      problems.push(`PUBLIC_URL is not a valid URL ("${config.publicUrl}")`);
+    }
+  }
+  if (config.adminPassword !== undefined && PLACEHOLDER.test(config.adminPassword)) {
+    problems.push("ADMIN_PASSWORD still contains the placeholder value — choose a real password (8+ characters)");
+  }
+  if (config.adminPassword !== undefined && config.adminPassword.length < 8) {
+    problems.push("ADMIN_PASSWORD must be at least 8 characters");
+  }
+  if (env.SUMIT_BASE_URL && PLACEHOLDER.test(env.SUMIT_BASE_URL)) problems.push("SUMIT_BASE_URL contains a placeholder — remove the variable to use https://api.sumit.co.il");
+  if (problems.length) throw new Error(problems.join("\n"));
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const port = envInt(env, "PORT", 8080);
   const publicUrl = (env.PUBLIC_URL || `http://localhost:${port}`).replace(/\/+$/, "");
