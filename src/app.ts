@@ -98,6 +98,12 @@ export function createApp(deps: AppDeps): Express {
     cors({ origin: true, credentials: false, exposedHeaders: ["Mcp-Session-Id", "WWW-Authenticate"], allowedHeaders: ["Content-Type", "Authorization", "Mcp-Session-Id", "Mcp-Protocol-Version", "Last-Event-ID"] })
   );
 
+  // Streaming endpoints: make sure intermediate proxies never buffer the event stream
+  app.use(["/mcp", "/mcp/*splat", "/sse", "/sse/*splat"], (_req, res, next) => {
+    res.setHeader("X-Accel-Buffering", "no");
+    next();
+  });
+
   app.get("/healthz", (_req, res) => {
     res.json({ ok: true, name: SERVER_NAME, version: SERVER_VERSION, sessions: mcpSessions.size });
   });

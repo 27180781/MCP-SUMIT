@@ -159,6 +159,7 @@ PUBLIC_URL=https://sumit-mcp.example.com MASTER_KEY=$(openssl rand -hex 32) npm 
 
 ## פריסה לענן
 
+* **DigitalOcean + CapRover (מומלץ):** מדריך מלא בעברית — [docs/DEPLOY_CAPROVER_DIGITALOCEAN.md](docs/DEPLOY_CAPROVER_DIGITALOCEAN.md). הריפו כולל `captain-definition`, תבנית One-Click (`deploy/caprover/one-click-app.yml`), סקריפט פריסה (`deploy/caprover/deploy.sh`) ו-GitHub Actions שמפרסם image ל-GHCR.
 * **Railway / Render / Fly.io / Koyeb:** פרסו את ה-Dockerfile, הגדירו `PUBLIC_URL=https://<your-domain>`, `TRUST_PROXY=true`, `MASTER_KEY`, `ADMIN_PASSWORD`, וחברו נפח (volume) ל-`/data`.
 * **VPS עם Caddy:** `caddy reverse-proxy --from sumit.example.com --to localhost:8080` נותן https אוטומטי.
 * בדיקת בריאות: `GET /healthz`.

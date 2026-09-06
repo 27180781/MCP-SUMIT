@@ -1,0 +1,63 @@
+# CapRover One-Click App template for SUMIT MCP.
+# Paste this into CapRover → Apps → One-Click Apps/Databases → ">> TEMPLATE <<".
+# The image must be public on GHCR (published by .github/workflows/docker-publish.yml)
+# or replace `image:` with an image CapRover can pull.
+captainVersion: 4
+services:
+    $$cap_appname:
+        image: ghcr.io/27180781/mcp-sumit:$$cap_version
+        restart: unless-stopped
+        volumes:
+            - $$cap_appname-data:/data
+        environment:
+            NODE_ENV: production
+            PORT: '8080'
+            HOST: 0.0.0.0
+            DATA_DIR: /data
+            PUBLIC_URL: https://$$cap_appname.$$cap_root_domain
+            TRUST_PROXY: 'true'
+            MASTER_KEY: $$cap_master_key
+            ADMIN_PASSWORD: $$cap_admin_password
+            ALLOW_URL_TOKENS: 'true'
+            OAUTH_ENABLED: 'true'
+            SUMIT_BASE_URL: https://api.sumit.co.il
+        caproverExtra:
+            containerHttpPort: '8080'
+            websocketSupport: 'true'
+caproverOneClickApp:
+    variables:
+        - id: $$cap_version
+          label: SUMIT MCP image tag
+          defaultValue: latest
+          description: Docker image tag from ghcr.io/27180781/mcp-sumit (latest or a version like v0.1.0)
+          validRegex: /^([^\s^\/])+$/
+        - id: $$cap_master_key
+          label: Master key (encrypts the SUMIT API keys at rest)
+          defaultValue: $$cap_gen_random_hex(32)
+          description: Keep a copy of this value! Without it the stored SUMIT API keys cannot be decrypted after a restore.
+          validRegex: /^.{16,}$/
+        - id: $$cap_admin_password
+          label: Admin console password
+          defaultValue: $$cap_gen_random_hex(12)
+          description: Password for https://<app>.<root-domain>/admin (also used to approve Claude.ai OAuth connections).
+          validRegex: /^.{8,}$/
+    instructions:
+        start: |-
+            SUMIT MCP — Model Context Protocol server for SUMIT (sumit.co.il) with multi-account support,
+            a Hebrew admin console, scoped API tokens and a built-in OAuth server for Claude.ai custom connectors.
+
+            After deployment you MUST enable HTTPS for the app (HTTP Settings → Enable HTTPS → Force HTTPS),
+            because PUBLIC_URL is set to https://<app>.<root-domain> and Claude.ai requires https.
+        end: |-
+            SUMIT MCP is deployed 🎉
+
+            1. Open the app's HTTP Settings → Enable HTTPS, then Force HTTPS.
+            2. Open https://$$cap_appname.$$cap_root_domain/admin and log in with the admin password you chose.
+            3. Add your SUMIT accounts (CompanyID + API key) and create tokens / connect Claude.ai to
+               https://$$cap_appname.$$cap_root_domain/mcp
+
+            Keep the master key safe — it is required to read the encrypted SUMIT API keys.
+    displayName: SUMIT MCP
+    isOfficial: false
+    description: MCP connector for SUMIT (Israeli accounting / billing / CRM platform) with multi-account admin console
+    documentation: https://github.com/27180781/MCP-SUMIT

@@ -1,0 +1,28 @@
+name: Deploy to CapRover
+
+# Optional: automatic deployment with the CapRover CLI on every push to the default branch.
+# Enable it by setting the repository variable CAPROVER_AUTO_DEPLOY=true and the secrets
+# CAPROVER_URL (https://captain.<root-domain>), CAPROVER_APP (e.g. sumit-mcp) and
+# CAPROVER_APP_TOKEN (App → Deployment → "Enable App Token").
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ vars.CAPROVER_AUTO_DEPLOY == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deploy branch with CapRover CLI
+        env:
+          CAPROVER_URL: ${{ secrets.CAPROVER_URL }}
+          CAPROVER_APP: ${{ secrets.CAPROVER_APP }}
+          CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_APP_TOKEN }}
+        run: npx -y caprover@2 deploy -u "$CAPROVER_URL" -a "$CAPROVER_APP" --appToken "$CAPROVER_APP_TOKEN" -b "${GITHUB_REF_NAME}"

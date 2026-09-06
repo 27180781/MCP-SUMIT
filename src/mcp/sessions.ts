@@ -106,14 +106,22 @@ export class McpSessionManager {
   async handleSseConnect(req: Request, res: Response, identity: ConnectionIdentity, messagesPath: string): Promise<void> {
     const ctx = this.opts.createContext(identity);
     const server = createMcpServer(ctx);
+    // Reverse proxies (nginx / CapRover / Cloudflare) buffer or time out idle SSE streams:
+    // disable proxy buffering and send a comment line every 15s as a keep-alive.
+    res.setHeader("X-Accel-Buffering", "no");
     const transport = new SSEServerTransport(messagesPath, res);
     this.sse.set(transport.sessionId, { transport, server, identity: identityKey(identity) });
-    transport.onclose = () => {
+    const keepAlive = setInterval(() => {
+      if (res.writableEnded || res.destroyed) return;
+      res.write(": keepalive\n\n");
+    }, 15_000);
+    keepAlive.unref();
+    const cleanup = () => {
+      clearInterval(keepAlive);
       this.sse.delete(transport.sessionId);
     };
-    res.on("close", () => {
-      this.sse.delete(transport.sessionId);
-    });
+    transport.onclose = cleanup;
+    res.on("close", cleanup);
     await server.connect(transport);
   }
 

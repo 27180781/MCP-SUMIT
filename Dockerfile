@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ---- build stage ----
 FROM node:22-alpine AS build
 WORKDIR /app
@@ -17,9 +18,12 @@ WORKDIR /app
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
+# Optional catalog generated from the official Swagger (catalog/generated.json)
+COPY catalog ./catalog
 RUN mkdir -p /data && chown -R node:node /data /app
 USER node
 VOLUME ["/data"]
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
+# Shell form so ${PORT} is expanded if the platform overrides it
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -qO- "http://127.0.0.1:${PORT:-8080}/healthz" || exit 1
 CMD ["node", "dist/server.js"]
