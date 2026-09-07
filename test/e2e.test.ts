@@ -156,6 +156,17 @@ describe("MCP over Streamable HTTP", () => {
     expect(raw.isError).toBeFalsy();
     expect(fake.calls.at(-1)!.path).toBe("/crm/schema/listfolders/");
 
+    // close a quote through the CRM entity (multi-step tool)
+    const closed = await client.callTool({ name: "sumit_documents_set_closed", arguments: { documentId: 5001 } });
+    expect(closed.isError).toBeFalsy();
+    expect((closed.content as { text: string }[])[0].text).toContain("CLOSED");
+    const upd = fake.calls.filter((c) => c.path === "/crm/data/updateentity/").at(-1)!;
+    expect(upd.body).toEqual({ Credentials: { CompanyID: 200, APIKey: "key-200" }, Entity: { ID: 5001, Folder: "109268653", Properties: { Accounting_Closed: true } } });
+    const again = await client.callTool({ name: "sumit_documents_set_closed", arguments: { documentId: 5001 } });
+    expect((again.content as { text: string }[])[0].text).toContain("already closed");
+    const reopened = await client.callTool({ name: "sumit_documents_set_closed", arguments: { documentId: 5001, closed: false } });
+    expect((reopened.content as { text: string }[])[0].text).toContain("OPEN");
+
     // unknown account
     const unknown = await client.callTool({ name: "sumit_general_get_vat_rate", arguments: { account: "לא קיים" } });
     expect(unknown.isError).toBe(true);

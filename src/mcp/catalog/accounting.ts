@@ -195,7 +195,8 @@ export const accountingEndpoints = [
     annotations: READ_ONLY,
     description:
       "מחזיר רשימת מסמכים לפי סוגים, טווח תאריכים, טווח מספרים ולקוח. תומך בעימוד. " +
-      "Lists documents with filters (types, date range, number range, customer). Data.Documents[] with ID/Number/Type/Date/Customer/DocumentValue/IsClosed.",
+      "Lists documents with filters (types, date range, number range, customer). Data.Documents[] with DocumentID/DocumentNumber/Type/Date/CustomerName/DocumentValue/IsClosed and HasNextPage. " +
+      "SUMIT returns pages of 10; use narrower date/number ranges when HasNextPage is true (the paging fields are sent but SUMIT may ignore them).",
     input: {
       documentTypes: z.array(documentTypeSchema).optional().describe("סוגי מסמכים לסינון (ריק = הכל)"),
       dateFrom: z.string().optional().describe("מתאריך (ISO 8601)"),
@@ -215,7 +216,9 @@ export const accountingEndpoints = [
         DocumentNumberTo: a.documentNumberTo,
         CustomerID: a.customerId,
         IncludeDrafts: a.includeDrafts,
-        Paging: a.paging
+        Paging: a.paging,
+        StartIndex: a.paging?.StartIndex,
+        PageSize: a.paging?.PageSize
       })
   }),
   defineEndpoint({

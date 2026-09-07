@@ -69,7 +69,8 @@ To get *exact* coverage, download the official Swagger JSON (you need to be logg
 | sumit_crm_list_entities | /crm/data/listentities/ | read | medium |
 | sumit_crm_get_entity | /crm/data/getentity/ | read | high |
 | sumit_crm_create_entity | /crm/data/createentity/ | write | medium |
-| sumit_crm_update_entity | /crm/data/updateentity/ | write | medium |
+| sumit_crm_update_entity | /crm/data/updateentity/ | write | high (verified live) |
+| sumit_documents_set_closed | /crm/data/getentity/ + /crm/data/updateentity/ (Accounting_Closed) | write | high (verified live) |
 | sumit_crm_archive_entity | /crm/data/archiveentity/ | write (destructive) | high |
 | sumit_crm_delete_entity | /crm/data/deleteentity/ | write (destructive) | high |
 | sumit_crm_count_entity_usage | /crm/data/countentityusage/ | read | medium |
@@ -86,6 +87,16 @@ To get *exact* coverage, download the official Swagger JSON (you need to be logg
 | sumit_permissions_set | /website/permissions/set/ | write | medium |
 | sumit_permissions_remove | /website/permissions/remove/ | write (destructive) | medium |
 | sumit_tickets_create | /customerservice/tickets/create/ | write | medium |
+
+## Closing quotes / orders
+
+SUMIT has no dedicated "close document" endpoint (`/accounting/documents/close/`, `setclosed`, `updatestatus`,
+`markasclosed` all fall through to the help-center HTML page). Open documents are CRM entities whose folder
+schema (`/crm/schema/getfolder/`) exposes a boolean property `Accounting_Closed` ("סגורה"), the same flag SUMIT
+sets automatically when an invoice is produced from the quote. `sumit_documents_set_closed` reads the entity,
+updates it with `{ "Entity": { "ID", "Folder", "Properties": { "Accounting_Closed": true } } }` and re-reads it.
+Property values must be plain values inside `Entity.Properties` — arrays (the shape `getentity` returns) are
+rejected with "Value Type not supported".
 
 ## Meta tools (always available)
 

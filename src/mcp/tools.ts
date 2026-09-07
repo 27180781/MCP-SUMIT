@@ -6,6 +6,7 @@ import { ToolError, accessibleAccounts, assertScope, resolveAccount, type ToolCo
 import { redact } from "../core/redact.js";
 import { normalizePath, type SumitCallResult } from "../core/sumit-client.js";
 import { loadGeneratedCatalog, type GeneratedEndpoint } from "./generated.js";
+import { registerCustomTools } from "./custom-tools.js";
 
 const MAX_TEXT = 160_000;
 
@@ -293,5 +294,6 @@ export function registerAllTools(server: McpServer, ctx: ToolContext): { count: 
   }
   registerMetaTools(server, ctx, extraGenerated);
   count += 5;
+  count += registerCustomTools(server, ctx);
   return { count };
 }

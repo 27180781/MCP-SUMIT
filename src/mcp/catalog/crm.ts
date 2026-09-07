@@ -92,15 +92,16 @@ export const crmEndpoints = [
     confidence: "medium",
     annotations: WRITE,
     description:
-      "יוצר רשומה (כרטיס) חדשה בתיקיית CRM. properties = מפה של שם שדה → ערך לפי הסכמה מ-crm_get_folder. " +
-      "Creates a CRM record. The request carries the properties both as Entity.Properties and as Fields for compatibility.",
+      "יוצר רשומה (כרטיס) חדשה בתיקיית CRM. properties = מפה של APIName של שדה → ערך פשוט, לפי הסכמה מ-crm_get_folder. " +
+      "Creates a CRM record (Entity.Properties with plain values).",
     input: {
       ...folderRef,
       properties: z.record(z.string(), z.unknown()).describe("שדות הרשומה: { \"Name\": \"...\", \"Phone\": \"...\" }")
     },
     build: (a) => {
       const fb = folderBody(a);
-      return compact({ Entity: compact({ Folder: fb.Folder, Properties: a.properties }), ...fb, Fields: a.properties, Properties: a.properties });
+      // Property values are plain values inside Entity.Properties (verified live; arrays are rejected by SUMIT).
+      return { Entity: compact({ Folder: fb.Folder, Properties: a.properties }) };
     }
   }),
   defineEndpoint({
@@ -109,9 +110,11 @@ export const crmEndpoints = [
     path: "/crm/data/updateentity/",
     module: "crm.data",
     scope: "write",
-    confidence: "medium",
+    confidence: "high",
     annotations: WRITE,
-    description: "מעדכן שדות ברשומת CRM קיימת. Updates fields of an existing CRM record (createIfMissing creates it when not found).",
+    description:
+      "מעדכן שדות ברשומת CRM קיימת (כולל כרטיסי מסמכים: למשל Accounting_Closed להצעת מחיר). properties = { APIName: value } עם ערכים פשוטים (לא מערכים); את ה-APIName של כל שדה מקבלים מ-crm_get_folder. " +
+      "Updates fields of an existing CRM record (createIfMissing creates it when not found).",
     input: {
       entityId: z.number().int(),
       ...folderRef,
@@ -120,7 +123,7 @@ export const crmEndpoints = [
     },
     build: (a) => {
       const fb = folderBody(a);
-      return compact({ Entity: compact({ ID: a.entityId, Folder: fb.Folder, Properties: a.properties }), EntityID: a.entityId, ...fb, Fields: a.properties, Properties: a.properties, CreateIfMissing: a.createIfMissing });
+      return compact({ Entity: compact({ ID: a.entityId, Folder: fb.Folder, Properties: a.properties }), CreateIfMissing: a.createIfMissing });
     }
   }),
   defineEndpoint({

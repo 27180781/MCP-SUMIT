@@ -6,7 +6,7 @@
 
 * **ריבוי חשבונות** — מנהלים כמה ארגונים של סאמיט (CompanyID + APIKey לכל אחד) מקונסולת ניהול אחת; כל כלי מקבל פרמטר `account`, יש חשבון ברירת מחדל, וה-AI יכול לעבור בין חשבונות באמצע שיחה.
 * **קונסולת ניהול בעברית** (`/admin`) — הוספת חשבונות, בדיקת חיבור, יצירת טוקנים עם הרשאות (קריאה / כתיבה / סליקה) ולפי חשבונות, ניהול חיבורי OAuth, יומן פעילות, קטלוג כלים, והוראות חיבור מוכנות להעתקה.
-* **67 כלים** — 62 כלים ייעודיים לכל endpoint מוכר + `sumit_api_request` לקריאה חופשית לכל endpoint, `sumit_api_catalog`, `sumit_list_accounts`, `sumit_use_account`, `sumit_test_connection`. אפשר להרחיב אוטומטית מקובץ ה-Swagger הרשמי.
+* **68 כלים** — 63 כלים ייעודיים לכל endpoint מוכר + `sumit_api_request` לקריאה חופשית לכל endpoint, `sumit_api_catalog`, `sumit_list_accounts`, `sumit_use_account`, `sumit_test_connection`. אפשר להרחיב אוטומטית מקובץ ה-Swagger הרשמי.
 * **אבטחה** — מפתחות ה-API מוצפנים במנוחה (AES-256-GCM), טוקנים נשמרים כ-hash, OAuth 2.1 מלא (PKCE + Dynamic Client Registration) עם מסך הסכמה שבו בוחרים חשבונות והרשאות, הפרדת הרשאות לפעולות שמזיזות כסף, יומן ביקורת ללא סודות.
 * **תחבורה** — Streamable HTTP (התקן העדכני), SSE (תאימות לאחור) ו-stdio (הפעלה מקומית).
 
@@ -107,7 +107,7 @@ PUBLIC_URL=https://sumit-mcp.example.com MASTER_KEY=$(openssl rand -hex 32) npm 
 | מודול | כלים |
 | --- | --- |
 | לקוחות | `sumit_customers_create`, `sumit_customers_update`, `sumit_customers_get_details_url`, `sumit_customers_create_remark` |
-| מסמכים | `sumit_documents_create` (חשבונית מס, חשבונית מס-קבלה, קבלה, חשבון עסקה, הצעת מחיר, הזמנה, דרישת תשלום, זיכויים…), `sumit_documents_list`, `sumit_documents_get_details`, `sumit_documents_get_pdf`, `sumit_documents_send`, `sumit_documents_cancel`, `sumit_documents_move_to_books`, `sumit_documents_add_expense`, `sumit_documents_get_debt`, `sumit_documents_get_debt_report` |
+| מסמכים | `sumit_documents_create` (חשבונית מס, חשבונית מס-קבלה, קבלה, חשבון עסקה, הצעת מחיר, הזמנה, דרישת תשלום, זיכויים…), `sumit_documents_list`, `sumit_documents_get_details`, `sumit_documents_get_pdf`, `sumit_documents_send`, `sumit_documents_cancel`, `sumit_documents_move_to_books`, `sumit_documents_add_expense`, `sumit_documents_get_debt`, `sumit_documents_get_debt_report`, `sumit_documents_set_closed` (סגירה/פתיחה של הצעת מחיר, הזמנה או חשבון עסקה) |
 | כללי | `sumit_general_get_vat_rate`, `sumit_general_get_exchange_rate`, `sumit_general_verify_bank_account`, `sumit_general_get_next_document_number`, `sumit_general_set_next_document_number`, `sumit_general_update_settings` |
 | פריטים ומלאי | `sumit_income_items_create`, `sumit_income_items_list`, `sumit_stock_list` |
 | סליקה | `sumit_payments_charge`, `sumit_payments_refund`, `sumit_payments_get`, `sumit_payments_list`, `sumit_payments_begin_redirect` (דף תשלום / Bit), `sumit_payments_multivendor_charge` |
@@ -183,7 +183,7 @@ npm test             # vitest: יחידה + מקצה-לקצה (שרת סאמיט
 **SUMIT MCP** is a Model Context Protocol server for the Israeli SUMIT business platform (accounting documents, credit-card clearing, recurring billing, CRM, stock, organisation management) with first-class **multi-account** support.
 
 * Admin console (`/admin`, Hebrew/RTL): add SUMIT accounts (CompanyID + API key, encrypted at rest), test them, mint scoped API tokens (`read` / `write` / `payments`, per-account), manage OAuth grants, view an audit log and copy ready-made connection snippets.
-* 67 tools: 62 curated endpoint tools (documents, customers, payments, refunds, recurring, payment methods, CreditGuy terminal, CRM schema/data/views, triggers, company/users/permissions, stock, VAT/exchange rates, bank account validation) plus `sumit_api_request` (any endpoint), `sumit_api_catalog`, `sumit_list_accounts`, `sumit_use_account`, `sumit_test_connection`. Every tool accepts `account` and `extra`.
+* 68 tools: 63 curated endpoint tools (documents, customers, payments, refunds, recurring, payment methods, CreditGuy terminal, CRM schema/data/views, triggers, company/users/permissions, stock, VAT/exchange rates, bank account validation) plus `sumit_api_request` (any endpoint), `sumit_api_catalog`, `sumit_list_accounts`, `sumit_use_account`, `sumit_test_connection`. Every tool accepts `account` and `extra`.
 * Transports: Streamable HTTP (`/mcp`, bearer token or `/mcp/t/<token>`), legacy SSE (`/sse`), stdio (`dist/stdio.js`).
 * Built-in OAuth 2.1 authorization server (DCR + PKCE + refresh tokens) with a consent page for Claude.ai custom connectors, where the admin picks which accounts and scopes each connection may use.
 * Extend the catalog from the official Swagger: `npm run import-swagger -- swagger.json`.
